@@ -1,9 +1,14 @@
-# Core Django
+# Core
 Django==4.2.7
 
-# Database (PostgreSQL - optional, only needed in production)
-# psycopg2-binary>=2.9.9,<3.0.0  # Uncomment for production
-dj-database-url>=2.1.0,<3.0.0
+# Database
+psycopg2-binary>=2.9.9,<3.0.0  # PostgreSQL adapter
+dj-database-url>=2.1.0,<3.0.0  # Database URL parsing
+python-dotenv>=1.0.0,<2.0.0    # Environment variable management
+
+# ASGI Server
+gunicorn==21.2.0                # Production WSGI server
+whitenoise==6.6.0              # Static file serving
 
 # REST Framework
 djangorestframework>=3.15.0,<4.0.0

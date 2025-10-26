@@ -19,6 +19,10 @@ from datetime import timedelta
 # Load environment variables from .env file
 load_dotenv()
 
+# Ensure required environment variables are set
+if not os.getenv('SECRET_KEY') and not os.getenv('RENDER'):
+    raise ValueError('SECRET_KEY must be set in environment variables or .env file')
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -27,32 +31,29 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # Security settings
+# Set to True only in development
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
 
-# Ensure SECRET_KEY is set in production
-SECRET_KEY = os.getenv('SECRET_KEY')
-if not SECRET_KEY:
-    if DEBUG:
-        SECRET_KEY = 'django-insecure-development-key-only'
-    else:
-        raise ValueError('SECRET_KEY must be set in production environment')
+# Generate a secret key if not set (for development only)
+if 'SECRET_KEY' not in os.environ and DEBUG:
+    from django.core.management.utils import get_random_secret_key
+    os.environ['SECRET_KEY'] = get_random_secret_key()
+
+# Get the secret key from environment
+SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-development-key-only')
 
 # Security: Set allowed hosts
-RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Allow all hosts in development
 
-if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-
-# Add additional allowed hosts for production
-if not DEBUG:
-    ALLOWED_HOSTS.extend([
-        'stage-2-backend-project.onrender.com',
-        'localhost',
-        '127.0.0.1',
-    ])
-else:
-    ALLOWED_HOSTS.extend(['*'])  # For development only
+# In production, restrict to your domain
+if os.getenv('RAILWAY_ENVIRONMENT') == 'production':
+    # Add your production domain(s) here
+    ALLOWED_HOSTS = [
+        'your-production-domain.com',
+        'www.your-production-domain.com',
+        # Add Railway's domain if needed
+        '*.up.railway.app',
+    ]
 
 # Application definition
 
@@ -70,6 +71,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     # Local apps
     'api',
+    'countries',
 ]
 
 MIDDLEWARE = [
@@ -121,25 +123,26 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database configuration
+# Database Configuration
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('PGDATABASE', 'postgres'),
+        'USER': os.getenv('PGUSER', 'postgres'),
+        'PASSWORD': os.getenv('PGPASSWORD', ''),
+        'HOST': os.getenv('PGHOST', 'localhost'),
+        'PORT': os.getenv('PGPORT', '5432'),
         'OPTIONS': {
-            'timeout': 20,  # seconds
+            'sslmode': 'require' if os.getenv('RAILWAY_ENVIRONMENT') == 'production' else 'prefer'
         }
     }
 }
 
-# Only use PostgreSQL in production (on Render)
-if os.getenv('RENDER'):
+# If DATABASE_URL is set (e.g., in Railway), use it
+if 'DATABASE_URL' in os.environ:
     import dj_database_url
-    DATABASES['default'] = dj_database_url.config(
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=True
-    )
+    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
+    DATABASES['default'].update(db_from_env)
 
 
 # Password validation

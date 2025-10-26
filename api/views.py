@@ -1,24 +1,52 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from rest_framework.decorators import api_view
-from django.http import JsonResponse
-
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
+from django.http import JsonResponse
+from django.db import connection, DatabaseError
+import time
+import logging
+
+logger = logging.getLogger(__name__)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
     """
     Health check endpoint for Render monitoring
-    This endpoint is publicly accessible
+    This endpoint is publicly accessible and checks:
+    1. Basic application status
+    2. Database connectivity
     """
-    return JsonResponse({
+    response_data = {
         'status': 'ok',
         'service': 'ecommerce-api',
-        'version': '1.0.0'
-    })
+        'version': '1.0.0',
+        'timestamp': time.time(),
+        'checks': {
+            'database': 'ok',
+        }
+    }
+    
+    # Check database connectivity
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+            cursor.fetchone()
+    except DatabaseError as e:
+        logger.error(f"Database connection failed: {str(e)}")
+        response_data['status'] = 'error'
+        response_data['checks']['database'] = 'error'
+        response_data['error'] = f"Database error: {str(e)}"
+        return JsonResponse(response_data, status=503)
+    except Exception as e:
+        logger.error(f"Health check failed: {str(e)}")
+        response_data['status'] = 'error'
+        response_data['error'] = str(e)
+        return JsonResponse(response_data, status=500)
+    
+    return JsonResponse(response_data)
 from .models import Category, Product, Order, Review
 from .serializers import (
     CategorySerializer, ProductSerializer,

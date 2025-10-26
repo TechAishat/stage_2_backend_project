@@ -7,6 +7,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from django.db import connection
 from django.db.utils import OperationalError
+from django.http import JsonResponse
 import logging
 import datetime
 
@@ -54,18 +55,20 @@ products_router = NestedSimpleRouter(router, r'products', lookup='product')
 products_router.register(r'reviews', ReviewViewSet, basename='product-reviews')
 
 urlpatterns = [
-    # Health check endpoint (no auth required)
-    path('api/health/', health_check, name='health-check'),
-    
-    # Admin site
     path('admin/', admin.site.urls),
-    
-    # API endpoints
-    path('api/', include(router.urls)),
-    path('api/', include(products_router.urls)),
-    
-    # Authentication
-    path('api/auth/', include('rest_framework.urls')),  # For browsable API login
-    path('api/auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/', include([
+        # Auth endpoints
+        path('auth/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+        path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+        
+        # Health check
+        path('health/', health_check, name='health-check'),
+        
+        # Countries app
+        path('countries/', include('countries.urls')),
+        
+        # E-commerce app
+        path('', include(router.urls)),
+        path('', include(products_router.urls)),  # Include nested routes
+    ])),
 ]
