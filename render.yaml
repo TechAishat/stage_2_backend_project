@@ -1,7 +1,7 @@
 # render.yaml
 services:
   - type: web
-    name: stage-2-backend
+    name: stage-2-backend-project
     env: python
     buildCommand: "./build.sh"
     startCommand: "gunicorn config.wsgi:application"
