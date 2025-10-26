@@ -118,18 +118,28 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 
-# Database Configuration
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+
+# Database configuration
 DATABASES = {
-    'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'sqlite:///db.sqlite3'),
-        conn_max_age=600,
-        conn_health_checks=True,
-        ssl_require=not DEBUG
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'OPTIONS': {
+            'timeout': 20,  # seconds
+        }
+    }
 }
 
-# Enable connection pooling
-DATABASES['default']['CONN_MAX_AGE'] = 500
+# Only use PostgreSQL in production (on Render)
+if os.getenv('RENDER'):
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+        ssl_require=True
+    )
 
 
 # Password validation
