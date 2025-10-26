@@ -4,7 +4,7 @@ services:
     name: stage-2-backend-project
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn config.wsgi:application"
+    startCommand: "gunicorn --worker-tmp-dir /dev/shm --workers=2 --threads=4 --worker-class=gthread --timeout 600 --bind :10000 config.wsgi:application"
     envVars:
       - key: PYTHON_VERSION
         value: "3.9.13"
@@ -16,4 +16,8 @@ services:
         fromDatabase:
           name: stage2db
           property: connectionString
+      - key: PORT
+        value: 10000
     plan: free
+    healthCheckPath: /api/health/
+    numInstances: 1
