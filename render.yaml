@@ -4,10 +4,10 @@ services:
     name: stage-2-backend-project
     env: python
     buildCommand: "chmod +x build.sh && ./build.sh"
-    startCommand: "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn config.wsgi:application --workers 2 --threads 4 --worker-class gthread --bind 0.0.0.0:$PORT --timeout 120 --access-logfile - --error-logfile - --log-level debug"
     envVars:
       - key: PYTHON_VERSION
-        value: "3.9.13"
+        value: "3.11.7"  # Using 3.11.7 for better compatibility with dependencies
       - key: DJANGO_SETTINGS_MODULE
         value: "config.settings"
       - key: PYTHONUNBUFFERED

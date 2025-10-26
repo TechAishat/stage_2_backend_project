@@ -28,16 +28,31 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Security settings
 DEBUG = os.getenv('DEBUG', 'False').lower() in ('true', '1', 't')
+
+# Ensure SECRET_KEY is set in production
 SECRET_KEY = os.getenv('SECRET_KEY')
-if not SECRET_KEY and DEBUG:
-    SECRET_KEY = 'django-insecure-development-key-only'
+if not SECRET_KEY:
+    if DEBUG:
+        SECRET_KEY = 'django-insecure-development-key-only'
+    else:
+        raise ValueError('SECRET_KEY must be set in production environment')
 
 # Security: Set allowed hosts
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+ALLOWED_HOSTS = []
+
 if RENDER_EXTERNAL_HOSTNAME:
-    ALLOWED_HOSTS = [RENDER_EXTERNAL_HOSTNAME, 'localhost', '127.0.0.1']
+    ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+
+# Add additional allowed hosts for production
+if not DEBUG:
+    ALLOWED_HOSTS.extend([
+        'stage-2-backend-project.onrender.com',
+        'localhost',
+        '127.0.0.1',
+    ])
 else:
-    ALLOWED_HOSTS = ['*']  # For development only
+    ALLOWED_HOSTS.extend(['*'])  # For development only
 
 # Application definition
 
@@ -68,6 +83,20 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Security settings for production
+if not DEBUG:
+    # Security Headers
+    SECURE_BROWSER_XSS_FILTER = True
+    X_FRAME_OPTIONS = 'DENY'
+    SECURE_SSL_REDIRECT = True
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_HSTS_SECONDS = 3600  # 1 hour
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
 
 ROOT_URLCONF = 'config.urls'
 

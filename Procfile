@@ -1,1 +1,1 @@
-web: gunicorn --worker-tmp-dir /dev/shm --workers=2 --threads=4 --worker-class=gthread --timeout 600 --bind :10000 config.wsgi:application
+web: gunicorn config.wsgi:application --workers=2 --threads=4 --worker-class=gthread --bind 0.0.0.0:$PORT --timeout 120 --access-logfile - --error-logfile - --log-level debug
