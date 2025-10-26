@@ -6,4 +6,10 @@ psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 gunicorn==21.2.0
 whitenoise==6.6.0
-drf-nested-routers==0.93.4
+drf-nested-routers==0.95.0
+drf-yasg==1.21.7
+Pillow==10.1.0
+PyJWT==2.8.0
+djangorestframework-simplejwt==5.3.1
+pytz==2023.3.post1
+sqlparse==0.4.4
