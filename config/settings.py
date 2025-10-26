@@ -123,26 +123,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-# Database Configuration
+# Database configuration - using SQLite for local development
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('PGDATABASE', 'postgres'),
-        'USER': os.getenv('PGUSER', 'postgres'),
-        'PASSWORD': os.getenv('PGPASSWORD', ''),
-        'HOST': os.getenv('PGHOST', 'localhost'),
-        'PORT': os.getenv('PGPORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require' if os.getenv('RAILWAY_ENVIRONMENT') == 'production' else 'prefer'
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
 
-# If DATABASE_URL is set (e.g., in Railway), use it
-if 'DATABASE_URL' in os.environ:
+# Ensure PostgreSQL is not used locally
+DATABASE_URL = None
+os.environ.pop('DATABASE_URL', None)
+
+# Only use PostgreSQL if explicitly set in production
+if os.getenv('RAILWAY_ENVIRONMENT') == 'production' and 'DATABASE_URL' in os.environ:
     import dj_database_url
-    db_from_env = dj_database_url.config(conn_max_age=600, ssl_require=True)
-    DATABASES['default'].update(db_from_env)
+    db_from_env = dj_database_url.config(
+        conn_max_age=600,
+        ssl_require=True
+    )
+    if db_from_env:
+        DATABASES['default'] = db_from_env
 
 
 # Password validation
