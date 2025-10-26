@@ -6,9 +6,9 @@ psycopg2-binary==2.9.9
 dj-database-url==2.1.0
 
 # REST Framework
-djangorestframework==3.14.0
-drf-nested-routers==0.95.0
-djangorestframework-simplejwt==5.3.1
+djangorestframework>=3.15.0,<4.0.0
+drf-nested-routers>=0.95.0,<1.0.0
+djangorestframework-simplejwt>=5.3.1,<6.0.0
 
 # API Documentation
 drf-yasg==1.21.7
