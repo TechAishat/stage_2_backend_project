@@ -8,6 +8,7 @@ router.register(r'products', views.ProductViewSet)
 router.register(r'orders', views.OrderViewSet, basename='order')
 
 urlpatterns = [
+    path('health/', views.health_check, name='health-check'),
     path('', include(router.urls)),
     path('products/<int:product_pk>/reviews/', 
          views.ReviewViewSet.as_view({

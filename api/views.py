@@ -1,5 +1,19 @@
 from rest_framework import viewsets, permissions, status
 from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework.decorators import api_view
+from django.http import JsonResponse
+
+@api_view(['GET'])
+def health_check(request):
+    """
+    Health check endpoint for Render monitoring
+    """
+    return JsonResponse({
+        'status': 'ok',
+        'service': 'ecommerce-api',
+        'version': '1.0.0'
+    })
 from .models import Category, Product, Order, Review
 from .serializers import (
     CategorySerializer, ProductSerializer,
