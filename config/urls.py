@@ -3,18 +3,36 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_nested.routers import NestedSimpleRouter
 from rest_framework.permissions import AllowAny
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
+from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from django.db import connection
+from django.db.utils import OperationalError
+import logging
+import datetime
+
+logger = logging.getLogger(__name__)
 
 # Health check view
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def health_check(request):
-    return JsonResponse({
-        'status': 'ok',
+    logger.info("Health check endpoint called")
+    
+    # Check database connection
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT 1")
+        db_status = 'connected'
+    except OperationalError as e:
+        logger.error(f"Database connection error: {str(e)}")
+        db_status = 'disconnected'
+    
+    return Response({
+        'status': 'ok' if db_status == 'connected' else 'error',
         'service': 'ecommerce-api',
-        'version': '1.0.0'
+        'version': '1.0.0',
+        'database': db_status,
+        'timestamp': datetime.datetime.utcnow().isoformat()
     })
 
 from api.views import (
