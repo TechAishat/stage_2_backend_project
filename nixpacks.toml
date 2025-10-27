@@ -1,0 +1,31 @@
+[phases.setup]
+nixPkgs = [
+    "python39",
+    "python39.pkgs.pip",
+    "python39.pkgs.virtualenv",
+    "postgresql_14",  # Using PostgreSQL 14 which is more stable with Nix
+    "gcc",
+    "zlib",
+    "libffi",
+    "openssl"
+]
+
+[phases.install]
+cmds = [
+    "python -m pip install -r requirements.txt"
+]
+
+[phases.build]
+cmds = [
+    "python manage.py collectstatic --noinput"
+]
+
+[start]
+cmd = "gunicorn config.wsgi:application --log-file -"
+
+[build.environment]
+PYTHONUNBUFFERED = "1"
+PYTHONPATH = "/app:$PYTHONPATH"
+
+[build.args]
+PYTHON_VERSION = "3.9"
