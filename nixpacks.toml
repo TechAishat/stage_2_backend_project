@@ -1,18 +1,20 @@
 [phases.setup]
 nixPkgs = [
     "python39",
-    "python39.pkgs.pip",
-    "python39.pkgs.virtualenv",
-    "postgresql_14",  # Using PostgreSQL 14 which is more stable with Nix
+    "python39Packages.pip",
+    "python39Packages.virtualenv",
+    "postgresql_14",
     "gcc",
     "zlib",
+    "zlib.dev",
     "libffi",
-    "openssl"
+    "openssl",
+    "pkg-config"
 ]
 
 [phases.install]
 cmds = [
-    "python -m pip install -r requirements.txt"
+    "chmod +x setup.sh && ./setup.sh"
 ]
 
 [phases.build]
